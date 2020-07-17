@@ -4,3 +4,6 @@ imgs
 result
 tmp
 pose_estimator.h5
+ssd_score/models
+ssd_score/models_VGGNet_VOC0712_SSD_300x300.tar.gz
+tool/~

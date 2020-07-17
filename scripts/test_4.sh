@@ -1,0 +1,3 @@
+/home/haoyue/anaconda3/bin/python /home/haoyue/codes/Pose-Transfer-master/test.py --dataroot /data0/haoyue/codes/datasets/fasion_data/ --name fasion_PATN_ganppssimperl1_win7 --model PATN --phase test --dataset_mode keypoint --norm instance --batchSize 1 --resize_or_crop no --gpu_ids 0 --BP_input_nc 18 --no_flip --which_model_netG PATN --checkpoints_dir /data0/haoyue/codes/checkpoints_fasion --pairLst /data0/haoyue/codes/datasets/fasion_data/fasion-resize-pairs-test.csv --which_epoch 660 --results_dir /data0/haoyue/codes/results_fasion --display_id 0
+
+/home/haoyue/anaconda3/envs/TF_env2/bin/python /home/haoyue/codes/Pose-Transfer-master/tool/getMetrics_fashion.py --generated_images_dir /data0/haoyue/codes/results_fasion/fasion_PATN_ganppssimperl1_win7/test_660/images

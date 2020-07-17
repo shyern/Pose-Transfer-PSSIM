@@ -1,0 +1,184 @@
+.Inception score 3.162069
+SSIM score 0.2814786934629599
+Compute l1 score...
+L1 score 0.29786605990540743
+Compute masked inception score...
+Inception score masked 3.7368336
+
+Inception score = (3.162069, 0.088858105), masked = (3.7368336, 0.057304855); SSIM score = 0.2814786934629599, masked = 0.7993130408396225; l1 score = 0.29786605990540743
+
+Inception score = (3.162069, 0.088858105), masked = (3.7368336, 0.057304855); SSIM score = 0.2814786934629599, masked = 0.7993130408396225; l1 score = 0.29786605990540743
+mmlab_DeepFashion_fashionsynth
+
+146250/154092 0.949108
+
+0.7958771370771962
+
+
+
+fashion
+Inception score = (3.2010295, 0.07047768); SSIM score = 0.7713797005470788
+
+114833/118322 0.970513
+
+0.9762798
+
+
+
+sudo apt-get install libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev  libhdf5-serial-dev protobuf-compiler
+sudo apt-get install --no-install-recommends libboost-all-dev
+sudo apt-get install libatlas-base-dev liblapack-dev libopenblas-dev
+sudo apt-get install python-dev python-opencv
+sudo apt_get install libgflags-dev libgoogle-glog-dev liblmdb-dev
+
+
+export CPLUS_INCLUDE_PATH=/home/haoyue/anaconda3/envs/caffe_weiliu/include/python3.6m
+export PATH="/home/haoyue/anaconda3/envs/caffe_weiliu/bin:$PATH"
+
+export PYTHONPATH=/home/haoyue/caffe/python
+
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+conda config --set show_channel_urls yes
+
+--input_dir ~/codes/results/fashion_PATN/test_latest/images_crop
+
+
+pose train market original
+(epoch: 1, iters: 200, time: 0.031) pair_L1loss: 8.466 D_PP: 3.556 D_PB: 3.345 pair_GANloss: 3.130 origin_L1: 3.676 perceptual: 4.790 
+(epoch: 1, iters: 400, time: 0.030) pair_L1loss: 8.830 D_PP: 3.354 D_PB: 3.297 pair_GANloss: 3.082 origin_L1: 3.826 perceptual: 5.004 
+(epoch: 1, iters: 600, time: 0.030) pair_L1loss: 8.605 D_PP: 3.486 D_PB: 3.242 pair_GANloss: 2.939 origin_L1: 3.882 perceptual: 4.722 
+(epoch: 1, iters: 800, time: 0.030) pair_L1loss: 8.173 D_PP: 3.416 D_PB: 3.231 pair_GANloss: 3.188 origin_L1: 3.201 perceptual: 4.972 
+(epoch: 1, iters: 1000, time: 0.030) pair_L1loss: 8.656 D_PP: 3.338 D_PB: 3.203 pair_GANloss: 3.216 origin_L1: 3.471 perceptual: 5.185 
+
+--dataroot /home/haoyue/codes/datasets/market_data/ --name market_PATN_msssim_gan --model PATN --lambda_GAN 5 --lambda_SSIM 10 --dataset_mode keypoint --no_lsgan --n_layers 3 --norm batch --batchSize 8 --resize_or_crop no --gpu_ids 1 --BP_input_nc 18 --no_flip --which_model_netG PATN --niter 500 --niter_decay 200 --pairLst /home/haoyue/codes/datasets/market_data/market-pairs-train.csv --L1_type MS-SSIM --n_layers_D 3 --with_D_PP 1 --with_D_PB 1  --display_id 0
+
+--dataroot /home/haoyue/codes/datasets/market_data/ --name market_PATN_msssim_gan --model PATN --lambda_GAN 5 --lambda_SSIM 10 --lambda_A 10 --dataset_mode keypoint --no_lsgan --n_layers 3 --norm batch --batchSize 8 --resize_or_crop no --gpu_ids 0 --BP_input_nc 18 --no_flip --which_model_netG PATN --niter 500 --niter_decay 200 --pairLst /home/haoyue/codes/datasets/market_data/market-pairs-train.csv --L1_type SSIM_plus_L1 --n_layers_D 3 --with_D_PP 1 --with_D_PB 1  --display_id 0
+
+bpt means body part using size_average as True 
+lcs means using l, c, s of SSIM 
+b16 means batch is 16
+
+the model bpt using cs and True as size_average
+the model bpt_lcs using lcs and True as size_average 
+the model bptb16 using lcs and True as size_average and batch size is 16
+Inception score = (3.404593, 0.08263928), masked = (3.7176094, 0.108796254); SSIM score = 0.3005644053099227, masked = 0.8077966246435718; l1 score = 0.30177629894514224
+
+the model bpb using BP_SSIM model
+the model bpt2 other implementation using lcs and True as size_average
+
+
+Bodypart_SSIM: the SSIM value is computed by slide windows.
+BP_SSIM: the SSIM value is computed by human body part blocks.
+
+['0763_c3s2_074853_02.jpg', '0763_c6s2_072368_01.jpg']
+
+--dataroot /data0/haoyue/codes/datasets/fasion_data/ --name fasion_PATN_ganssimperl1 --model PATN --lambda_GAN 5 --lambda_A 1 --lambda_B 1 --dataset_mode keypoint --n_layers 3 --norm instance --batchSize 7 --pool_size 0 --resize_or_crop no --gpu_ids 3 --BP_input_nc 18 --no_flip --which_model_netG PATN --niter 500 --niter_decay 200 --checkpoints_dir /data0/haoyue/codes/checkpoints_fasion --pairLst /data0/haoyue/codes/datasets/fasion_data/fasion-pairs-train.csv --L1_type SSIM_plus_perL1 --n_layers_D 3 --with_D_PP 1 --with_D_PB 1  --display_id 0
+
+
+
+--dataroot /data0/haoyue/codes/datasets/fasion_data/ --name fashion_PATN_ganssimperl1 --model PATN --phase test --dataset_mode keypoint --norm instance --batchSize 1 --resize_or_crop no --gpu_ids 0 --BP_input_nc 18 --no_flip --which_model_netG PATN --checkpoints_dir /data0/haoyue/codes/checkpoints_fasion --pairLst /data0/haoyue/codes/datasets/fasion_data/fasion-resize-pairs-test.csv --which_epoch latest --results_dir /data0/haoyue/codes/results_fasion --display_id 0
+
+
+--dataroot /data0/haoyue/codes/datasets/market_data/ --name market_PATN_ganperssiml1_nosoftmax --model PATN --lambda_GAN 5 --lambda_B 10 --dataset_mode keypoint --no_lsgan --n_layers 3 --norm batch --batchSize 16 --resize_or_crop no --gpu_ids 1 --BP_input_nc 18 --no_flip --which_model_netG PATN --niter 500 --niter_decay 200 --pairLst /data0/haoyue/codes/datasets/market_data/market-pairs-train.csv --n_layers_D 3 --L1_type PerceptualSSIM --percep_is_l1 2 --with_D_PP 1 --with_D_PB 1  --display_id 0
+
+--name=pose_fashion_checkpoints \
+--model=pose \
+--attn_layer=2,3 \
+--kernel_size=2=5,3=3 \
+--gpu_id=0 \
+--dataset_mode=fashion \
+--dataroot=./dataset/fashion \
+--results_dir=./eval_results/fashion
+
+# Test the market dataset
+python test.py --name=pose_market_checkpoints --model=pose --attn_layer=2 --kernel_size=2=3 --gpu_id=0 --dataset_mode=market --dataroot=./dataset/market --results_dir=./eval_results/market
+
+1,128,96,48  -->  1,128,32,16  -->  1,9,32,16
+
+1,128,3,3    -->  1,(1),3,3
+
+# First train the Flow Field Estimator.
+python train.py --name=fashion --model=poseflownet --attn_layer=2,3 --kernel_size=2=5,3=3 --gpu_id=0 --dataset_mode=fashion --dataroot=/data0/haoyue/codes/datasets/fashion_data --checkpoints_dir=/data0/haoyue/codes/global_flow_local_attention/results
+
+# Then, train the whole model in an end-to-end manner.
+python train.py --name=fashion --model=pose --attn_layer=2,3 --kernel_size=2=5,3=3 --gpu_id=0 --dataset_mode=fashion --dataroot=/data0/haoyue/codes/datasets/market_data --continue_train --checkpoints_dir=/data0/haoyue/codes/global_flow_local_attention/results
+
+
+python train.py --dataroot /data0/haoyue/codes/datasets/fashion_data --name fashion_PATN --model PATN --lambda_GAN 5 --lambda_A 1 --lambda_B 1 --dataset_mode keypoint --n_layers 3 --norm instance --batchSize 7 --pool_size 0 --resize_or_crop no --gpu_ids 0 --BP_input_nc 18 --no_flip --which_model_netG PATN --niter 500 --niter_decay 200 --checkpoints_dir ./checkpoints --pairLst /data0/haoyue/codes/datasets/fashion_data/fasion-resize-pairs-train.csv --L1_type l1_plus_perL1 --n_layers_D 3 --with_D_PP 1 --with_D_PB 1  --display_id 0
+
+
+cat: no change input + cat
+/data0/haoyue/codes/results_v2/market_PATN_cat/test_latest/images
+Inception score = (3.574288, 0.051719975), masked = (3.8601756, 0.072445035); SSIM score = 0.2998814470102589, masked = 0.8052868646868878; l1 score = 0.2964844325512323
+PSNR: 14.1949 PSNR Variance: 2.5336 SSIM: 0.4723 SSIM Variance: 0.0324 SSIM_256: 0.2979 SSIM_256 Variance: 0.0078 MAE: 0.1877 MAE Variance: 0.0017 l1: 0.1482 l1 Variance: 0.0010
+
+
+cat2: change input + PATB
+Inception score masked 3.7682357
+/data0/haoyue/codes/results_v2/market_PATN_cat2/test_latest/images
+Inception score = (3.4745781, 0.07954808), masked = (3.7682357, 0.043420173); SSIM score = 0.3011562603704702, masked = 0.8073857009184693; l1 score = 0.29318855860757925
+
+
+cat3: no change of input + global attention
+/data0/haoyue/codes/results_v2/market_PATN_cat3/test_latest/images
+Inception score = (3.2530227, 0.06540368), masked = (3.832074, 0.0964299); SSIM score = 0.3039395749317588, masked = 0.8082703969742873; l1 score = 0.28977705934478826
+
+
+cat4: change input + global attention
+/data0/haoyue/codes/results_v2/market_PATN_cat4/test_latest/images
+Inception score = (3.3253422, 0.06561348), masked = (3.85315, 0.079827026); SSIM score = 0.2999065754378488, masked = 0.8061239178732733; l1 score = 0.2938285185238375
+
+
+cat5: change input + cat
+Inception score masked 3.7386982
+/data0/haoyue/codes/results_v2/market_PATN_cat5/test_latest/images
+Inception score = (3.4010422, 0.05842273), masked = (3.7386982, 0.07765741); SSIM score = 0.3081363570047635, masked = 0.8079513495701658; l1 score = 0.29306780604277305
+
+cat6: change input + cat + global attention
+/data0/haoyue/codes/results_v2/market_PATN_cat6/test_latest/images
+Inception score = (3.3675282, 0.06526994), masked = (3.812603, 0.07599205); SSIM score = 0.30860836630023086, masked = 0.8091425048173263; l1 score = 0.29346625378178615
+
+
+
+--input_dir=/data0/haoyue/codes/datasets/attack_data/imagenet_test/images --output_dir=outputs --model=inception-v3 --norm=l2 --method=uniform --show_loss
+
+
+https://pypi.mirrors.ustc.edu.cn/simple/ 
+https://developer.nvidia.com/cuda-80-download-archive
+
+--config_file configs/seg/cityscapes/denseaspp_fcn_cityscapes_seg.conf --phase train --train_batch_size 2 --val_batch_size 1 --backbone deepbase_resnet101_d8 --model_name pspnet --drop_last y --syncbn y --dist y  --data_dir /data0/lhz/CityScapes --loss_type dsnce_loss --max_iters 40000 --checkpoints_name fs_pspnet_cityscapes_seg --pretrained /data0/haoyue/codes/imagenet_pretrained_models/3x3resnet101-imagenet.pth
+
+--nproc_per_node=2 main.py --config_file configs/seg/cityscapes/base_fcn_cityscapes_seg.conf --phase train --train_batch_size 1 --val_batch_size 1 --backbone deepbase_resnet101_d8 --model_name pspnet --drop_last y --syncbn y --dist y  --data_dir /data0/lhz/Cityscapes --loss_type dsnce_loss --max_iters 40000 --checkpoints_name ./log/seg/cityscapes/fs_pspnet_cityscapes_seg.log --pretrained /data0/haoyue/codes/imagenet_pretrained_models/3x3resnet101-imagenet.pth
+
+
+--gt_path=/data0/haoyue/codes/datasets/market_data/images_gt --distorated_path=/data0/haoyue/codes/results_v2/market_PATN_cat/test_latest/images_generated --fid_real_path=./dataset/market/train_12864 --name=./market_12864
+
+
+--dataroot /data0/haoyue/codes/datasets/fashion_data/ --dataset_mode keypoint --resize_or_crop no --generated_images_dir /data0/haoyue/codes/PATN/results_fasion/fashion_PATN/test_latest/images --annotations_file /data0/haoyue/codes/datasets/fashion_data/fasion-resize-annotation-test.csv --bodypart_mask_dir /data0/haoyue/codes/datasets/fashion_data/testM
+
+
+--dataroot /data0/haoyue/codes/datasets/fasion_data/ --name fasion_PATN_ganppssimperl1_win7 --model PATN --phase test --dataset_mode keypoint --norm instance --batchSize 1 --resize_or_crop no --gpu_ids 0 --BP_input_nc 18 --no_flip --which_model_netG PATN --checkpoints_dir /data0/haoyue/codes/checkpoints_fasion --pairLst /data0/haoyue/codes/datasets/fasion_data/fasion-resize-pairs-test.csv --which_epoch 680 --results_dir /data0/haoyue/codes/results_fasion --display_id 0
+
+--dataroot /data0/haoyue/codes/datasets/fasion_data/ --name fasion_PATN_ganppssimperl1_win7 --model PATN --lambda_GAN 5 --lambda_A 0 --lambda_B 10 --lambda_SSIM 10 --dataset_mode keypoint --n_layers 3 --norm instance --batchSize 7 --pool_size 0 --resize_or_crop no --gpu_ids 1 --BP_input_nc 18 --no_flip --which_model_netG PATN --niter 500 --niter_decay 200 --checkpoints_dir /data0/haoyue/codes/checkpoints_fasion --pairLst /data0/haoyue/codes/datasets/fasion_data/fasion-resize-pairs-train.csv --L1_type p_pSSIM_plus_perL1_L1 --win_size 7 --win_sigma 0.8 --n_layers_D 3 --with_D_PP 1 --with_D_PB 1  --display_id 0
+
+/data0/haoyue/codes/PATN/results_fasion/fashion_PATN/test_latest/images 0.99234545
+
+
+--dataroot /data0/haoyue/codes/datasets/market_data/ --dataset_mode keypoint2 --resize_or_crop no --images_dir /data0/haoyue/codes/PATN/results3/market_PATN_ganppssimperl1_win7_batch32/test_680/images --annotations_file /data0/haoyue/codes/datasets/market_data/market-annotation-test.csv --bodypart_mask_dir /data0/haoyue/codes/datasets/market_data/testM
+
+
+
+code:
+ppssim tensor(0.7987)
+
+/data0/haoyue/codes/PATN/results_fasion/fasion_PATN_ganppssimperl1_win7/test_660/images
+ppssim tensor(0.8133)
+
+/data0/haoyue/codes/PATN/results3/market_PATN_ganppssimperl1_win7_batch32/test_680/images
+ppssim tensor(0.6415)
+
+/data0/haoyue/codes/PATN/results2/market_PATN/test_latest/images
+ppssim tensor(0.6186)
+
+1

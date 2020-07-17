@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../Global-Flow-Local-Attention-master/.idea/Global-Flow-Local-Attention-master.iml" filepath="$PROJECT_DIR$/../Global-Flow-Local-Attention-master/.idea/Global-Flow-Local-Attention-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Pose-Guided-Person-Image-Generation-master/.idea/Pose-Guided-Person-Image-Generation-master.iml" filepath="$PROJECT_DIR$/../Pose-Guided-Person-Image-Generation-master/.idea/Pose-Guided-Person-Image-Generation-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/Pose-Transfer-master.iml" filepath="$PROJECT_DIR$/.idea/Pose-Transfer-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Pose-Transfer-master_v2/.idea/Pose-Transfer-master_v2.iml" filepath="$PROJECT_DIR$/../Pose-Transfer-master_v2/.idea/Pose-Transfer-master_v2.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../Prior-Guided-RGF-master/.idea/Prior-Guided-RGF-master.iml" filepath="$PROJECT_DIR$/../Prior-Guided-RGF-master/.idea/Prior-Guided-RGF-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../deformable-gan-pytorch/.idea/deformable-gan-pytorch.iml" filepath="$PROJECT_DIR$/../deformable-gan-pytorch/.idea/deformable-gan-pytorch.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../deformable-gan-tf/.idea/deformable-gan-tf.iml" filepath="$PROJECT_DIR$/../deformable-gan-tf/.idea/deformable-gan-tf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../posewarp-cvpr2018-master/.idea/posewarp-cvpr2018-master.iml" filepath="$PROJECT_DIR$/../posewarp-cvpr2018-master/.idea/posewarp-cvpr2018-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../self-attention-gan-master/.idea/self-attention-gan-master.iml" filepath="$PROJECT_DIR$/../self-attention-gan-master/.idea/self-attention-gan-master.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../torchcv_semantic_segmentation/.idea/torchcv_semantic_segmentation.iml" filepath="$PROJECT_DIR$/../torchcv_semantic_segmentation/.idea/torchcv_semantic_segmentation.iml" />
+    </modules>
+  </component>
+</project>
