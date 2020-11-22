@@ -1,45 +1,7 @@
 import torch
 import torch.nn.functional as F
-import torch.nn as nn
 from .ssim import _fspecial_gauss_1d, ssim
 
-# part ssim calculation using Def-GAN cubic masks + mean & std calculation using torch.mean method
-def part_ssim2(X, Y, part_mask, data_range=1.0, size_average=True, K=(0.01, 0.03)):
-    mask_channel = part_mask.shape[1]
-    K1, K2 = K
-    compensation = 1.0
-    C1 = (K1 * data_range) ** 2
-    C2 = (K2 * data_range) ** 2
-
-    part_mask = nn.Softmax(dim=1)(part_mask)
-    part_mask_repeat = torch.unsqueeze(part_mask,2)
-    X_repeat = torch.unsqueeze(X,1).repeat(1, mask_channel, 1, 1, 1)
-    Y_repeat = torch.unsqueeze(Y,1).repeat(1, mask_channel, 1, 1, 1)
-
-    cnt = torch.sum(part_mask_repeat, (-2,-1), keepdim=True)
-
-    X_hotarea = torch.mul(X_repeat, part_mask_repeat)
-    Y_hotarea = torch.mul(Y_repeat, part_mask_repeat)
-
-    X_mean = torch.mean(X_hotarea, (-2,-1), keepdim=True)/cnt
-    X_var = compensation * torch.sum((X_hotarea-X_mean)**2, (-2,-1), keepdim=True)/cnt
-    Y_mean = torch.mean(Y_hotarea, (-2,-1), keepdim=True)/cnt
-    Y_var = compensation * torch.sum((Y_hotarea-Y_mean)**2, (-2,-1), keepdim=True)/cnt
-    XY_mean = torch.mean(X_hotarea*Y_hotarea, (-2,-1), keepdim=True)/cnt
-    XY_var = compensation * (XY_mean - X_mean*Y_mean)
-
-    cs = (2*XY_var+C2)/(X_var+Y_var+C2)
-    ssim = ((2*X_mean*Y_mean+C1)/(X_mean.pow(2)+Y_mean.pow(2)+C1))*cs
-
-    if size_average:
-        ssim_avg = ssim.mean()
-    else:
-        ssim_avg = ssim.mean(-1)
-
-    return ssim_avg
-
-
-# part ssim calculation using 2D Gaussian masks + mean & std calculation using weight average method
 def part_ssim(X, Y, part_mask, mask_t=0.4, data_range=255, size_average=True, K=(0.01,0.03)):
     batch_size, img_channel, H, W = X.shape[0], X.shape[1], X.shape[2], X.shape[3]
     mask_channel = part_mask.shape[1]
@@ -238,22 +200,17 @@ class FPart_BSSIM(torch.nn.Module):  #  foreground part-SSIM + background SSIM
         self.nonnegative_ssim = nonnegative_ssim
         self.channel = channel
 
-    def forward(self, X, Y, part_mask):
+    def forward(self, X, Y, part_mask_):
         # from [-1,1] to [0,1]
         X = (X + 1) / 2.0
         Y = (Y + 1) / 2.0
+        f_mask = part_mask_[:,2:,:,:]
 
-        # 2D Gaussian mask version
-        # f_mask = part_mask[:, 2:, :, :]
-        # b_mask = torch.unsqueeze(part_mask[:,1,:,:], 1).repeat(1, self.channel, 1, 1)
-        # f_ssim = part_ssim(X, Y, f_mask, data_range=self.data_range, size_average=self.size_average)
+        f_ssim = part_ssim(X, Y, f_mask, data_range=self.data_range, size_average=self.size_average)
 
-        # Def-GAN cubic mask version
-        f_mask = part_mask[:, 2:, :, :]
-        b_mask = torch.unsqueeze(part_mask[:,1,:,:], 1).repeat(1, self.channel, 1, 1)
-        f_ssim = part_ssim2(X, Y, f_mask, data_range=self.data_range, size_average=self.size_average)
-
-        bX, bY = torch.mul(b_mask, X), torch.mul(b_mask, Y)
+        b_mask = torch.unsqueeze(part_mask_[:,1,:,:], 1).repeat(1, self.channel, 1, 1)
+        bX = torch.mul(b_mask, X)
+        bY = torch.mul(b_mask, Y)
         b_ssim = ssim(bX, bY, win_size=self.win_size, win_sigma=self.win_sigma, win=self.win, data_range=self.data_range,
              size_average=self.size_average, K=self.K, nonnegative_ssim=self.nonnegative_ssim)
 

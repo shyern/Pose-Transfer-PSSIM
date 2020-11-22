@@ -9,7 +9,6 @@ import pandas as pd
 import numpy as np
 import torch
 
-from data.pose_transform import load_pose_cords_from_strings, affine_transforms, pose_masks
 
 class KeyDataset(BaseDataset):
     def initialize(self, opt):
@@ -17,18 +16,16 @@ class KeyDataset(BaseDataset):
         self.root = opt.dataroot
         self.dir_P = os.path.join(opt.dataroot, opt.dataset, opt.phase) #person images
         self.dir_K = os.path.join(opt.dataroot, opt.dataset, opt.phase + 'K') #keypoints
-        # self.dir_M = os.path.join(opt.dataroot, opt.dataset, opt.phase + 'M')  # limbs mask
+        self.dir_M = os.path.join(opt.dataroot, opt.dataset, opt.phase + 'M')  # limbs mask
         # self.dir_M = os.path.join(opt.dataroot, opt.phase + 'MSM')  # limbs mask
 
         # dir_KC = os.path.join(opt.dataroot, opt.phase+'KC.npy')   # keypoints coor
         # self.keypoint_coor = np.load(dir_KC, allow_pickle = True).item()
 
-        pairLst = os.path.join(opt.dataroot, opt.dataset, opt.pairLst)
-        annoLst = os.path.join(opt.dataroot, opt.dataset, opt.annoLst)
-        self.init_categories(pairLst, annoLst)
+        self.init_categories(opt.pairLst)
         self.transform = get_transform(opt)
 
-    def init_categories(self, pairLst, annoLst):
+    def init_categories(self, pairLst):
         pairs_file_train = pd.read_csv(pairLst)
         self.size = len(pairs_file_train)
         self.pairs = []
@@ -36,32 +33,8 @@ class KeyDataset(BaseDataset):
         for i in range(self.size):
             pair = [pairs_file_train.iloc[i]['from'], pairs_file_train.iloc[i]['to']]
             self.pairs.append(pair)
+
         print('Loading data pairs finished ...')
-
-        print('Loading data annos ...')
-        annotations_file = pd.read_csv(annoLst, sep=':')
-        self.annos = annotations_file.set_index('name')
-        print('Loading data annos finished ...')
-
-    def get_mask_params(self, P1_name, P2_name, img_size, BP_limbs_nc=10, trans_param_num=8):
-        # AFtrans_param = [np.empty([BP_limbs_nc, trans_param_num]),  # Affine transformation parameters. 10: the len of body limbs, 8: the param for each limbs
-        #                  np.empty([BP_limbs_nc] + img_size)]  # The mask of 10 body limbs.
-        # AFtrans_param = np.empty([BP_limbs_nc, trans_param_num])   # Affine transformation parameters. 10: the len of body limbs, 8: the param for each limbs
-
-        fr = self.annos.loc[P1_name]
-        to = self.annos.loc[P2_name]
-
-        kp_array1 = load_pose_cords_from_strings(fr['keypoints_y'],
-                                                 fr['keypoints_x'])
-        kp_array2 = load_pose_cords_from_strings(to['keypoints_y'],
-                                                 to['keypoints_x'])
-        # AFtrans_param = affine_transforms(kp_array1, kp_array2)
-
-        BP1_mask = pose_masks(kp_array1, img_size)  # BP1_mask
-        BP2_mask = pose_masks(kp_array2, img_size)    # BP2 mask
-        masks = [BP1_mask, BP2_mask]
-
-        return masks
 
     def __getitem__(self, index):
         if self.opt.phase == 'train':
@@ -74,21 +47,16 @@ class KeyDataset(BaseDataset):
         # person 2 and its bone
         P2_path = os.path.join(self.dir_P, P2_name) # person 2
         BP2_path = os.path.join(self.dir_K, P2_name + '.npy') # bone of person 2
-        # BP2_mask_path = os.path.join(self.dir_M, P2_name + '.npy')  # pSSIM loss of person 2
+        BP2_mask_path = os.path.join(self.dir_M, P2_name + '.npy')
 
         P1_img = Image.open(P1_path).convert('RGB')
         P2_img = Image.open(P2_path).convert('RGB')
 
         BP1_img = np.load(BP1_path) # h, w, c
         BP2_img = np.load(BP2_path)
-        # BP2_mask_img = np.load(BP2_mask_path)
-
-        img_size = [P1_img.size[1], P1_img.size[0]]  # H, W (128, 64)
-        masks = self.get_mask_params(P1_name, P2_name, img_size, self.opt.BP_limbs_nc, self.opt.trans_param_num)
-
+        BP2_mask_img = np.load(BP2_mask_path)
         # BP2_keypoint_coor = self.keypoint_coor[P2_name]  # (h,w) (128, 64)
         # use flip
-        # BUG!!!!   the flipped version of affine_paras is not implemented.
         if self.opt.phase == 'train' and self.opt.use_flip:
             # print ('use_flip ...')
             flip_random = random.uniform(0,1)
@@ -100,7 +68,7 @@ class KeyDataset(BaseDataset):
 
                 BP1_img = np.array(BP1_img[:, ::-1, :]) # flip
                 BP2_img = np.array(BP2_img[:, ::-1, :]) # flip
-                # BP2_mask_img = np.array(BP2_mask_img[:, ::-1, :]) # flip
+                BP2_mask_img = np.array(BP2_mask_img[:, ::-1, :]) # flip
                 # BP2_keypoint_coor = np.array(P1_img.shape[1]-BP2_keypoint_coor[0,:])  ???
 
             BP1 = torch.from_numpy(BP1_img).float() #h, w, c
@@ -111,9 +79,9 @@ class KeyDataset(BaseDataset):
             BP2 = BP2.transpose(2, 0) #c,w,h
             BP2 = BP2.transpose(2, 1) #c,h,w
 
-            # BP2_mask = torch.from_numpy(BP2_mask_img).float()
-            # BP2_mask = BP2_mask.transpose(-1, -3) #c,w,h
-            # BP2_mask = BP2_mask.transpose(-1, -2) #c,h,w
+            BP2_mask = torch.from_numpy(BP2_mask_img).float()
+            BP2_mask = BP2_mask.transpose(-1, -3) #c,w,h
+            BP2_mask = BP2_mask.transpose(-1, -2) #c,h,w
 
             P1 = self.transform(P1_img)
             P2 = self.transform(P2_img)
@@ -127,14 +95,14 @@ class KeyDataset(BaseDataset):
             BP2 = BP2.transpose(2, 0) #c,w,h
             BP2 = BP2.transpose(2, 1) #c,h,w 
 
-            # BP2_mask = torch.from_numpy(BP2_mask_img).float()
-            # BP2_mask = BP2_mask.transpose(-1, -3) #s,c,w,h
-            # BP2_mask = BP2_mask.transpose(-1, -2) #s,c,h,w
+            BP2_mask = torch.from_numpy(BP2_mask_img).float()
+            BP2_mask = BP2_mask.transpose(-1, -3) #s,c,w,h
+            BP2_mask = BP2_mask.transpose(-1, -2) #s,c,h,w
 
             P1 = self.transform(P1_img)
             P2 = self.transform(P2_img)
 
-        return {'P1': P1, 'BP1': BP1, 'P2': P2, 'BP2': BP2, 'masks': masks,
+        return {'P1': P1, 'BP1': BP1, 'P2': P2, 'BP2': BP2, 'BP2_mask': BP2_mask,
                 'P1_path': P1_name, 'P2_path': P2_name}
                 
 

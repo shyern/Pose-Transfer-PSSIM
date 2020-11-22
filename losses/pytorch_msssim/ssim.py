@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 from torch.autograd import Variable
+import torchvision.transforms as transforms
 
 
 def _fspecial_gauss_1d(size, sigma):
@@ -256,7 +257,7 @@ class SSIM(torch.nn.Module):
         self.nonnegative_ssim = nonnegative_ssim
 
     def forward(self, X, Y):
-        channel = X.shape[1]
+        B, channel, H, W = X.shape
         if channel == 3:
             # mean = torch.FloatTensor(3)
             # mean[0] = 0.485
@@ -277,13 +278,31 @@ class SSIM(torch.nn.Module):
             #
             # Y_p2_norm = (Y + 1) / 2  # [-1, 1] => [0, 1]
             # Y_p2_norm = (Y_p2_norm - mean) / std
-            X_p2_norm = (X+1)/2.0
-            Y_p2_norm = (Y+1)/2.0
+            X_norm = (X+1)/2.0
+            Y_norm = (Y+1)/2.0
         else:
-            X_p2_norm = X
-            Y_p2_norm = Y
+            X_norm = X
+            Y_norm = Y
+            # X_max_channel = (X.transpose(0,1).reshape((channel,-1))).max(1)[0]
+            # X_max_channel_rep = X_max_channel.unsqueeze(0).unsqueeze(-1).unsqueeze(-1).repeat((B, 1, H, W))
+            # X_norm = X / X_max_channel_rep
+            # Y_max_channel = (Y.transpose(0, 1).reshape((channel, -1))).max(1)[0]
+            # Y_max_channel_rep = Y_max_channel.unsqueeze(0).unsqueeze(-1).unsqueeze(-1).repeat((B, 1, H, W))
+            # Y_norm = Y / Y_max_channel_rep
+
+            # X_transpose = (X.transpose(0,1).reshape((channel,-1)))
+            # X_mean_channel = X_transpose.mean(1).unsqueeze(0).unsqueeze(-1).unsqueeze(-1).repeat((B,1,H,W))
+            # X_std_channel = X_transpose.std(1).unsqueeze(0).unsqueeze(-1).unsqueeze(-1).repeat((B,1,H,W))
+            # X_norm = (X-X_mean_channel)/X_std_channel
+            #
+            # Y_transpose = (Y.transpose(0, 1).reshape((channel, -1)))
+            # Y_mean_channel = Y_transpose.mean(1).unsqueeze(0).unsqueeze(-1).unsqueeze(-1).repeat((B, 1, H, W))
+            # Y_std_channel = Y_transpose.std(1).unsqueeze(0).unsqueeze(-1).unsqueeze(-1).repeat((B, 1, H, W))
+            # Y_norm = (Y - Y_mean_channel) / Y_std_channel
+
         self.win = torch.unsqueeze(self.win[0,...],0).repeat(channel, 1, 1, 1)
-        return ssim(X_p2_norm, Y_p2_norm, win_size=self.win_size, win_sigma=self.win_sigma, win=self.win, data_range=self.data_range, size_average=self.size_average, K=self.K, nonnegative_ssim=self.nonnegative_ssim)
+
+        return ssim(X_norm, Y_norm, win_size=self.win_size, win_sigma=self.win_sigma, win=self.win, data_range=self.data_range, size_average=self.size_average, K=self.K, nonnegative_ssim=self.nonnegative_ssim)
 
     
 class MS_SSIM(torch.nn.Module):
