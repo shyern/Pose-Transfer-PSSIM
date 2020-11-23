@@ -1,5 +1,5 @@
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import json
 import os
 
@@ -160,20 +160,99 @@ def produce_ma_mask(kp_array, img_size, point_radius=1):
     mask = np.expand_dims(mask, -1).astype(np.uint8)
     return mask
 
-def compute_pose(image_dir, annotations_file, savePath):
+def make_masked_img(image, mask, imtype=np.uint8):
+	mask = np.repeat(np.expand_dims(mask, -1), 3, -1)
+	masked_img = np.multiply(image, mask)
+	return masked_img.astype(imtype)
+
+
+def compute_pose(img_dir, annotations_file, savePath, map_type='pose_map', image_size=(128,64), show=False):
     annotations_file = pd.read_csv(annotations_file, sep=':')
     annotations_file = annotations_file.set_index('name')
-    image_size = (128, 64)
+
+    old_size = [256, 176]
+    new_size = [256, 256]
     cnt = len(annotations_file)
     for i in range(cnt):
         print('processing %d / %d ...' %(i, cnt))
         row = annotations_file.iloc[i]
         name = row.name
         print(savePath, name)
-        # file_name = os.path.join(savePath, name + '.npy')
+        file_name = os.path.join(savePath, name + '.npy')
         kp_array = load_pose_cords_from_strings(row.keypoints_y, row.keypoints_x)
-        pose = cords_to_map(kp_array, image_size)
-        # np.save(file_name, pose)
+        # x_kp = [_kp+40 if _kp!=-1 else _kp for _kp in kp_array[:,1]]
+        # kp_array[:,1] = x_kp
+
+        for i, point in enumerate(kp_array):
+            if point[0] == MISSING_VALUE or point[1] == MISSING_VALUE:
+                continue
+            point[0] = point[0] / old_size[0] * new_size[0]
+            point[1] = point[1] / old_size[1] * new_size[1]
+
+        if map_type == 'pose_map':
+            mask = cords_to_map(kp_array, image_size)  # mark pose map
+            bg_mask = np.expand_dims(1.0 - np.amax(mask, axis=-1), -1)
+            fg_mask = np.expand_dims(np.amax(mask, axis=-1), -1)
+            mask = np.concatenate((fg_mask, bg_mask, mask), axis=-1)
+        elif map_type == 'limbs_map':
+            mask = make_limb_masks(kp_array, image_size)
+            bg_mask = np.expand_dims(1.0 - np.amax(mask, axis=2), 2)
+            fg_mask = np.expand_dims(np.amax(mask, axis=2), 2)
+            # mask = np.log(np.concatenate((bg_mask, mask), axis=2) + 1e-10)
+            mask = np.concatenate((fg_mask, bg_mask, mask), axis=2)
+
+            # mask = produce_ma_mask(kp_array, image_size)
+        elif map_type == 'ms_limbs_map':
+            mask = make_ms_limb_masks(kp_array, image_size)
+            bg_mask = np.expand_dims(1.0 - np.amax(mask, axis=-1), -1)
+            fg_mask = np.expand_dims(np.amax(mask, axis=-1), -1)
+            # mask = np.log(np.concatenate((bg_mask, mask), axis=2) + 1e-10)
+            # mask = np.concatenate((fg_mask, bg_mask, mask), axis=-1)
+            mask = np.concatenate((bg_mask, mask), axis=-1)
+            # new_shape = (mask.shape[1], mask.shape[2], mask.shape[3]*mask.shape[0])
+            # mask = np.transpose(mask, (1,2,3,0)).reshape(new_shape)
+        # else:
+            # raise Excption('Unsurportted type!')
+        np.save(file_name, mask)
+
+        if show:
+            from PIL import Image
+            plt.axis('off')
+            # img = imread(image_dir + name)
+            img = Image.open(img_dir+name).convert("RGB").resize((256, 256))
+            plt.subplot(151)
+            p_img = np.array(img).astype(np.uint8)
+            plt.imshow(p_img)
+            plt.xticks([])
+            plt.yticks([])
+            plt.subplot(152)
+            mask_id = 0
+            # p_mask = np.repeat(np.expand_dims(mask[:, :, mask_id]*255, -1), 3, -1)
+            p_mask = np.repeat(np.expand_dims(mask[:, :, mask_id], -1), 3, -1)
+            plt.imshow(p_mask)
+            plt.xticks([])
+            plt.yticks([])
+            # plt.subplot(153)
+            # pp_mask = (p_mask>0.4).astype(np.uint8)*255
+            # plt.imshow(pp_mask)
+            # plt.xticks([])
+            # plt.yticks([])
+            plt.subplot(153)
+            mmm = make_masked_img(img, mask[:, :, mask_id])
+            plt.imshow(mmm)
+            plt.xticks([])
+            plt.yticks([])
+            plt.subplot(154)
+            mmm = make_masked_img(img, mask[:, :, mask_id+1])
+            plt.imshow(mmm)
+            plt.xticks([])
+            plt.yticks([])
+            # plt.subplot(155)
+            # mmmm = make_masked_img(img, pp_mask[:,:,0]/255)
+            # plt.imshow(mmmm)
+            # plt.xticks([])
+            # plt.yticks([])
+            plt.show()
 
 def save_pose_coor(annotations_file, save_name):
     annotations_file = pd.read_csv(annotations_file, sep=':')
@@ -191,8 +270,8 @@ def save_pose_coor(annotations_file, save_name):
 
 
 if __name__ == '__main__':
-    img_dir = './datasets/market_data_s/train/'  # raw image path
-    annotations_file = './datasets/market_data_s/market-annotation-train.csv'  # pose annotation path
-    save_path = './datasets/market_data/trainK/'  # path to store pose maps
-    compute_pose(img_dir, annotations_file, save_path)
-
+    image_size = (256, 176)
+    img_dir = './datasets/fasion_data/test/'  # raw image path
+    annotations_file = './datasets/fasion_data/fasion-annotation-test.csv'  # pose annotation path
+    save_mask_path = './datasets/fasion_data/testM'  # path to store limbs maps
+    compute_pose(img_dir, annotations_file, save_mask_path, map_type='limbs_map', image_size=image_size, show=False)

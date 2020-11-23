@@ -22,7 +22,8 @@ class KeyDataset(BaseDataset):
         # dir_KC = os.path.join(opt.dataroot, opt.phase+'KC.npy')   # keypoints coor
         # self.keypoint_coor = np.load(dir_KC, allow_pickle = True).item()
 
-        self.init_categories(opt.pairLst)
+        pairLst = os.path.join(opt.dataroot, opt.dataset, opt.pairLst)
+        self.init_categories(pairLst)
         self.transform = get_transform(opt)
 
     def init_categories(self, pairLst):
