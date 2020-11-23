@@ -1,9 +1,7 @@
 import numpy as np
 import torch
-import os
 from collections import OrderedDict
 from torch.autograd import Variable
-import itertools
 import util.util as util
 from util.image_pool import ImagePool
 from .base_model import BaseModel
@@ -11,11 +9,11 @@ from . import networks
 # losses
 from losses.L1_plus_perceptualLoss import L1_plus_perceptualLoss
 from losses.PerceptualLoss import PerceptualLoss
-from losses.other_losses.PerceptualSSIMLoss import PerceptualSSIMLoss
-from losses.other_losses.StyleLoss import StyleLoss
-from losses.L1_plus_perceptual_styleLoss import L1_plus_perceptual_styleLoss
+from losses.PerceptualSSIMLoss import PerceptualSSIMLoss
+from losses.pytorch_style.StyleLoss import StyleLoss
+from losses.pytorch_style.L1_plus_perceptual_styleLoss import L1_plus_perceptual_styleLoss
 
-from losses.pytorch_msssim import SSIM, MS_SSIM, FPart_BSSIM
+from losses.pytorch_msssim import SSIM, FPart_BSSIM
 
 
 class TransferModel(BaseModel):
