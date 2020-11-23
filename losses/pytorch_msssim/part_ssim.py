@@ -200,15 +200,15 @@ class FPart_BSSIM(torch.nn.Module):  #  foreground part-SSIM + background SSIM
         self.nonnegative_ssim = nonnegative_ssim
         self.channel = channel
 
-    def forward(self, X, Y, part_mask_):
+    def forward(self, X, Y, part_mask):
         # from [-1,1] to [0,1]
         X = (X + 1) / 2.0
         Y = (Y + 1) / 2.0
-        f_mask = part_mask_[:,2:,:,:]
+        f_mask = part_mask[:,1:,:,:]
 
         f_ssim = part_ssim(X, Y, f_mask, data_range=self.data_range, size_average=self.size_average)
 
-        b_mask = torch.unsqueeze(part_mask_[:,1,:,:], 1).repeat(1, self.channel, 1, 1)
+        b_mask = torch.unsqueeze(part_mask[:,0,:,:], 1).repeat(1, self.channel, 1, 1)
         bX = torch.mul(b_mask, X)
         bY = torch.mul(b_mask, Y)
         b_ssim = ssim(bX, bY, win_size=self.win_size, win_sigma=self.win_sigma, win=self.win, data_range=self.data_range,
