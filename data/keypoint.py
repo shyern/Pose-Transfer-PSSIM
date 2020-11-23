@@ -96,8 +96,8 @@ class KeyDataset(BaseDataset):
         # BP2_mask_img = np.load(BP2_mask_path)
 
         img_size = [P1_img.size[1], P1_img.size[0]]
-        BP2_mask = self.get_gaussian_mask(P1_name, P2_name, img_size)
-        # BP2_mask = self.get_rectangle_mask(P1_name, P2_name, img_size)
+        # BP2_mask = self.get_gaussian_mask(P1_name, P2_name, img_size)
+        BP2_mask = self.get_rectangle_mask(P1_name, P2_name, img_size)
 
         # use flip
         if self.opt.phase == 'train' and self.opt.use_flip:
