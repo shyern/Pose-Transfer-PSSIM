@@ -1,7 +1,6 @@
 .idea
 ssd_score
 records
-scripts
 datasets
 checkpoints
 results
@@ -25,6 +24,7 @@ tool/metrics_ssim_fashion.py
 tool/metrics_ssim_market.py
 tool/inception_score.py
 tool/inception.py
-
+tool/generate_limbs_mask_market.py
+tool/generate_limbs_mask_fashion.py
 
 

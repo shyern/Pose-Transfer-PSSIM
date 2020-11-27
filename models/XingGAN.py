@@ -1,20 +1,21 @@
 import numpy as np
 import torch
+import os
 from collections import OrderedDict
-from torch.autograd import Variable
+import itertools
 import util.util as util
 from util.image_pool import ImagePool
 from .base_model import BaseModel
 from . import networks
 # losses
 from losses.L1_plus_perceptualLoss import L1_plus_perceptualLoss
-from losses.PerceptualLoss import PerceptualLoss
-from losses.PerceptualSSIMLoss import PerceptualSSIMLoss
-from losses.pytorch_style.StyleLoss import StyleLoss
-from losses.pytorch_style.L1_plus_perceptual_styleLoss import L1_plus_perceptual_styleLoss
-
 from losses.pytorch_msssim import SSIM, FPart_BSSIM
 
+import sys
+import torch.nn.functional as F
+import torchvision.models as models
+import torchvision.transforms as transforms
+import torch.nn as nn
 
 class TransferModel(BaseModel):
     def name(self):
@@ -25,16 +26,11 @@ class TransferModel(BaseModel):
 
         nb = opt.batchSize
         size = opt.fineSize
-        self.input_P1_set = self.Tensor(nb, opt.P_input_nc, size, size)
-        self.input_BP1_set = self.Tensor(nb, opt.BP_input_nc, size, size)
-        self.input_P2_set = self.Tensor(nb, opt.P_input_nc, size, size)
-        self.input_BP2_set = self.Tensor(nb, opt.BP_input_nc, size, size)
-        self.input_BP2_mask_set = self.Tensor(nb, opt.BP_limbs_nc, size, size)
 
         input_nc = [opt.P_input_nc, opt.BP_input_nc+opt.BP_input_nc]
         self.netG = networks.define_G(input_nc, opt.P_input_nc,
                                         opt.ngf, opt.which_model_netG, opt.norm, not opt.no_dropout, opt.init_type, self.gpu_ids,
-                                        n_blocks=opt.n_blocks, n_downsampling=opt.G_n_downsampling)
+                                        n_downsampling=opt.G_n_downsampling)
 
         if self.isTrain:
             use_sigmoid = opt.no_lsgan
@@ -69,28 +65,18 @@ class TransferModel(BaseModel):
             # define loss functions
             self.criterionGAN = networks.GANLoss(use_lsgan=not opt.no_lsgan, tensor=self.Tensor)
 
-            if opt.L1_type == 'origin':  # L1 loss
+            if opt.L1_type == 'origin':
                 self.criterionL1 = torch.nn.L1Loss()
-            elif opt.L1_type == 'perL1':  # PerL1 loss
-                self.criterionL1 = PerceptualLoss(opt.lambda_B, opt.perceptual_layers, self.gpu_ids, opt.percep_is_l1)
-            elif opt.L1_type == 'SSIM':  # SSIM loss
-                self.criterionSSIM = SSIM(win_size=opt.win_size,win_sigma=opt.win_sigma,data_range=1.0, size_average=True)
-            elif opt.L1_type == 'Style':  # Style loss
-                self.criterionStyle = StyleLoss(opt.lambda_style, opt.perceptual_layers, self.gpu_ids)
-            elif opt.L1_type == 'PerSSIM':  # PerceptualSSIM loss
-                self.criterionPerSSIM = PerceptualSSIMLoss(opt.lambda_perssim, opt.perceptual_layers, self.gpu_ids, win_size=opt.win_size, win_sigma=opt.win_sigma)
-            elif opt.L1_type == 'l1_plus_perL1':  # L1 + PerL1 loss
+            elif opt.L1_type == 'l1_plus_perL1':
                 self.criterionL1 = L1_plus_perceptualLoss(opt.lambda_A, opt.lambda_B, opt.perceptual_layers, self.gpu_ids, opt.percep_is_l1)
-
             elif opt.L1_type == 'FPart_BSSIM_plus_perL1_L1':  # FPart_BSSIM + PerL1 + L1 loss
-                self.criterionSSIM = FPart_BSSIM(data_range=1.0, size_average=True, win_size=opt.win_size, win_sigma=opt.win_sigma)
-                self.criterionL1 = L1_plus_perceptualLoss(opt.lambda_A, opt.lambda_B, opt.perceptual_layers, self.gpu_ids,
-                                                      opt.percep_is_l1)
-            elif opt.L1_type == 'FPart_BSSIM_plus_perL1_style':  #FPart_BSSIM + PerL1 + style loss
-                self.criterionSSIM = FPart_BSSIM(data_range=1.0, size_average=True, win_size=opt.win_size, win_sigma=opt.win_sigma)
-                self.criterionL1 = L1_plus_perceptual_styleLoss(opt.lambda_style, opt.lambda_B, opt.perceptual_layers, self.gpu_ids, opt.percep_is_l1)
+                self.criterionSSIM = FPart_BSSIM(data_range=1.0, size_average=True, win_size=opt.win_size,
+                                                 win_sigma=opt.win_sigma)
+                self.criterionL1 = L1_plus_perceptualLoss(opt.lambda_A, opt.lambda_B, opt.perceptual_layers,
+                                                          self.gpu_ids,
+                                                          opt.percep_is_l1)
             else:
-                self.criterionL1 = None
+                raise Excption('Unsurportted type of L1!')
             # initialize optimizers
             self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, 0.999))
             if opt.with_D_PB:
@@ -118,42 +104,29 @@ class TransferModel(BaseModel):
         # print('-----------------------------------------------')
 
     def set_input(self, input):
-        input_P1, input_BP1 = input['P1'], input['BP1']
-        input_P2, input_BP2 = input['P2'], input['BP2']
-        # input_BP2_KC = input['BP2_KC']
-        input_BP2_mask = input['BP2_mask']
-
-        self.input_P1_set.resize_(input_P1.size()).copy_(input_P1)
-        self.input_BP1_set.resize_(input_BP1.size()).copy_(input_BP1)
-        self.input_P2_set.resize_(input_P2.size()).copy_(input_P2)
-        self.input_BP2_set.resize_(input_BP2.size()).copy_(input_BP2)
-        self.input_BP2_mask_set.resize_(input_BP2_mask.size()).copy_(input_BP2_mask)
-
+        self.input_P1, self.input_BP1 = input['P1'], input['BP1']
+        self.input_P2, self.input_BP2 = input['P2'], input['BP2']
+        self.input_BP2_mask = input['BP2_mask']
         self.image_paths = input['P1_path'][0] + '___' + input['P2_path'][0]
 
+        if len(self.gpu_ids) > 0:
+            self.input_P1 = self.input_P1.cuda()
+            self.input_BP1 = self.input_BP1.cuda()
+            self.input_P2 = self.input_P2.cuda()
+            self.input_BP2 = self.input_BP2.cuda()
+            self.input_BP2_mask_set = self.input_BP2_mask.cuda()
 
     def forward(self):
-        self.input_P1 = Variable(self.input_P1_set)
-        self.input_BP1 = Variable(self.input_BP1_set)
-
-        self.input_P2 = Variable(self.input_P2_set)
-        self.input_BP2 = Variable(self.input_BP2_set)
-
         G_input = [self.input_P1,
                    torch.cat((self.input_BP1, self.input_BP2), 1)]
         self.fake_p2 = self.netG(G_input)
 
 
     def test(self):
-        self.input_P1 = Variable(self.input_P1_set)
-        self.input_BP1 = Variable(self.input_BP1_set)
-
-        self.input_P2 = Variable(self.input_P2_set)
-        self.input_BP2 = Variable(self.input_BP2_set)
-
-        G_input = [self.input_P1,
-                   torch.cat((self.input_BP1, self.input_BP2), 1)]
-        self.fake_p2 = self.netG(G_input)
+        with torch.no_grad():
+            G_input = [self.input_P1,
+                       torch.cat((self.input_BP1, self.input_BP2), 1)]
+            self.fake_p2 = self.netG(G_input)
 
 
     # get image paths
@@ -171,17 +144,7 @@ class TransferModel(BaseModel):
             self.loss_G_GAN_PP = self.criterionGAN(pred_fake_PP, True)
 
         # L1 loss
-        if self.opt.L1_type == 'origin':
-            self.loss_G_L1 = self.criterionL1(self.fake_p2, self.input_P2) * self.opt.lambda_A  # l1 loss
-        elif self.opt.L1_type == 'perL1':
-            self.loss_G_L1 = self.criterionL1(self.fake_p2, self.input_P2)  # perL1 loss
-        elif self.opt.L1_type == 'SSIM':
-            self.loss_G_L1 = (1-self.criterionSSIM(self.fake_p2, self.input_P2)) * self.opt.lambda_SSIM  # ssim loss
-        elif self.opt.L1_type == 'Style':
-            self.loss_G_L1 = self.criterionStyle(self.fake_p2, self.input_P2)  #  style loss
-        elif self.opt.L1_type == 'PerSSIM':
-            self.loss_G_L1 = self.criterionPerSSIM(self.fake_p2, self.input_P2)  # Perceptual SSIM loss
-        elif self.opt.L1_type == 'l1_plus_perL1':
+        if self.opt.L1_type == 'l1_plus_perL1':
             losses = self.criterionL1(self.fake_p2, self.input_P2)
             self.loss_G_L1 = losses[0]
             self.loss_originL1 = losses[1].item()
@@ -190,18 +153,12 @@ class TransferModel(BaseModel):
             self.loss_ssim = (1 - self.criterionSSIM(self.fake_p2,
                                                      self.input_P2, self.input_BP2_mask_set)) * self.opt.lambda_SSIM
             losses = self.criterionL1(self.fake_p2, self.input_P2)
-            self.loss_G_L1 = losses[0]+self.loss_ssim   #  perL1 + L1 loss + fpart_bssim loss
+            self.loss_G_L1 = losses[0] + self.loss_ssim  # perL1 + L1 loss + fpart_bssim loss
             self.loss_originL1 = losses[1].item()  # L1 loss
             self.loss_perceptual = losses[2].item()  # perL1 loss
-        elif self.opt.L1_type == 'FPart_BSSIM_plus_perL1_style':
-            self.loss_ssim = (1 - self.criterionSSIM(self.fake_p2,
-                                                     self.input_P2, self.input_BP2_mask_set)) * self.opt.lambda_SSIM
-            losses = self.criterionL1(self.fake_p2, self.input_P2)
-            self.loss_G_L1 = losses[0]+self.loss_ssim  # perL1 + style loss + fpart_bssim loss
-            self.loss_style = losses[1].item()  # style loss
-            self.loss_perceptual = losses[2].item()  # perL1 loss
+
         else:
-            self.loss_G_L1 = torch.tensor(0).cuda()
+            self.loss_G_L1 = self.criterionL1(self.fake_p2, self.input_P2) * self.opt.lambda_A
 
 
         pair_L1loss = self.loss_G_L1
@@ -293,10 +250,6 @@ class TransferModel(BaseModel):
             ret_errors['perceptual'] = self.loss_perceptual
         if self.opt.L1_type == 'FPart_BSSIM_plus_perL1_L1':
             ret_errors['origin_L1'] = self.loss_originL1
-            ret_errors['perceptual'] = self.loss_perceptual
-            ret_errors['ssim'] = self.loss_ssim.item()
-        if self.opt.L1_type == 'FPart_BSSIM_plus_perL1_style':
-            ret_errors['style'] = self.loss_style
             ret_errors['perceptual'] = self.loss_perceptual
             ret_errors['ssim'] = self.loss_ssim.item()
 

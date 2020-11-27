@@ -9,6 +9,7 @@ import torch.nn.functional as F
 
 import sys
 from models.model_variants import PATNetwork
+from models.model_variants_xing import XingNetwork
 
 def weights_init_normal(m):
     classname = m.__class__.__name__
@@ -113,6 +114,10 @@ def define_G(input_nc, output_nc, ngf, which_model_netG, norm='batch', use_dropo
     if which_model_netG == 'PATN':
         assert len(input_nc) == 2
         netG = PATNetwork(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout,
+                                           n_blocks=n_blocks, gpu_ids=gpu_ids, n_downsampling=n_downsampling)
+    elif which_model_netG == 'Xing':
+        assert len(input_nc) == 2
+        netG = XingNetwork(input_nc, output_nc, ngf, norm_layer=norm_layer, use_dropout=use_dropout,
                                            n_blocks=n_blocks, gpu_ids=gpu_ids, n_downsampling=n_downsampling)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % which_model_netG)
