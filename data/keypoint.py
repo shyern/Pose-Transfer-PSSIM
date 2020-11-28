@@ -67,6 +67,7 @@ class KeyDataset(BaseDataset):
 
         img_size = [P1_img.size[1], P1_img.size[0]]
         BP2_mask = self.get_gaussian_mask(P2_name, img_size)
+        BP2_mask = torch.from_numpy(BP2_mask).float()
 
         # use flip
         if self.opt.phase == 'train' and self.opt.use_flip:
