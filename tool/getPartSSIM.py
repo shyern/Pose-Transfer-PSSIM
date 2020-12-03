@@ -25,7 +25,7 @@ class KeyDataset(data.Dataset):
         pairs_file_train = pd.read_csv(pairLst)
         self.size = len(pairs_file_train)
         self.images_dir = []
-        print('Loading images ...')
+        print('Loading images from' + results_dirs)
         for i in range(self.size):
             pair = [pairs_file_train.iloc[i]['from'], pairs_file_train.iloc[i]['to']]
             save_name = pair[0] + '___' + pair[1] + '_vis.jpg'

@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 
-pro_dir="/home/haoyue/remote/Person-Image-Gen-pssim/"
-#pro_dir="./Person-Image-Gen-pssim/"
+pro_dir="./Pose-Transfer-pSSIM"
 
 ######################################################################################
 ################################Train###############################################
 L1_type="FPart_BSSIM_plus_perL1_L1"
 #L1_type="l1_plus_perL1"
 batchSize=32
-dataset="market_data_s"
+dataset="market_data"
 display_id=1
 display_port=8098
 gpu_ids=2
