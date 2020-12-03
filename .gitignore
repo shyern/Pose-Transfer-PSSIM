@@ -27,4 +27,5 @@ tool/inception.py
 tool/generate_limbs_mask_market.py
 tool/generate_limbs_mask_fashion.py
 tool/getPartSSIM.py
-
+tool/generate_limbs_mask_market.py
+tool/generate_limbs_mask_fashion.py
