@@ -81,7 +81,10 @@ class TransferModel(BaseModel):
                 self.criterionPerSSIM = PerceptualSSIMLoss(opt.lambda_perssim, opt.perceptual_layers, self.gpu_ids, win_size=opt.win_size, win_sigma=opt.win_sigma)
             elif opt.L1_type == 'l1_plus_perL1':  # L1 + PerL1 loss
                 self.criterionL1 = L1_plus_perceptualLoss(opt.lambda_A, opt.lambda_B, opt.perceptual_layers, self.gpu_ids, opt.percep_is_l1)
-
+            elif opt.L1_type == 'SSIM_plus_perL1_l1':  # L1 + PerL1 + SSIM loss
+                self.criterionL1 = L1_plus_perceptualLoss(opt.lambda_A, opt.lambda_B, opt.perceptual_layers, self.gpu_ids, opt.percep_is_l1)
+                self.criterionSSIM = SSIM(win_size=opt.win_size, win_sigma=opt.win_sigma, data_range=1.0,
+                                          size_average=True)
             elif opt.L1_type == 'FPart_BSSIM_plus_perL1_L1':  # FPart_BSSIM + PerL1 + L1 loss
                 self.criterionSSIM = FPart_BSSIM(data_range=1.0, size_average=True, win_size=opt.win_size, win_sigma=opt.win_sigma)
                 self.criterionL1 = L1_plus_perceptualLoss(opt.lambda_A, opt.lambda_B, opt.perceptual_layers, self.gpu_ids,
@@ -186,6 +189,12 @@ class TransferModel(BaseModel):
             self.loss_G_L1 = losses[0]
             self.loss_originL1 = losses[1].item()
             self.loss_perceptual = losses[2].item()
+        elif self.opt.L1_type == 'SSIM_plus_perL1_l1':
+            losses_l1_perl1 = self.criterionL1(self.fake_p2, self.input_P2)
+            self.loss_ssim = (1 - self.criterionSSIM(self.fake_p2, self.input_P2)) * self.opt.lambda_SSIM
+            self.loss_G_L1 = losses_l1_perl1[0] + self.loss_ssim
+            self.loss_originL1 = losses_l1_perl1[1].item()
+            self.loss_perceptual = losses_l1_perl1[2].item()
         elif self.opt.L1_type == 'FPart_BSSIM_plus_perL1_L1':
             self.loss_ssim = (1 - self.criterionSSIM(self.fake_p2,
                                                      self.input_P2, self.input_BP2_mask_set)) * self.opt.lambda_SSIM
@@ -291,11 +300,15 @@ class TransferModel(BaseModel):
         if self.opt.L1_type == 'l1_plus_perL1':
             ret_errors['origin_L1'] = self.loss_originL1
             ret_errors['perceptual'] = self.loss_perceptual
-        if self.opt.L1_type == 'FPart_BSSIM_plus_perL1_L1':
+        elif self.opt.L1_type == 'SSIM_plus_perL1_l1':
+            ret_errors['ssim'] = self.loss_ssim.item()
+            ret_errors['origin_L1'] = self.loss_originL1
+            ret_errors['perceptual'] = self.loss_perceptual
+        elif self.opt.L1_type == 'FPart_BSSIM_plus_perL1_L1':
             ret_errors['origin_L1'] = self.loss_originL1
             ret_errors['perceptual'] = self.loss_perceptual
             ret_errors['ssim'] = self.loss_ssim.item()
-        if self.opt.L1_type == 'FPart_BSSIM_plus_perL1_style':
+        elif self.opt.L1_type == 'FPart_BSSIM_plus_perL1_style':
             ret_errors['style'] = self.loss_style
             ret_errors['perceptual'] = self.loss_perceptual
             ret_errors['ssim'] = self.loss_ssim.item()
