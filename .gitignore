@@ -1,5 +1,4 @@
 .idea
-ssd_score
 records
 datasets
 checkpoints
@@ -20,10 +19,6 @@ util/__pycache__
 
 tool/metrics_fid_fashion.py
 tool/metrics_fid_market.py
-tool/metrics_ssim_fashion.py
-tool/metrics_ssim_market.py
-tool/inception_score.py
 tool/inception.py
 tool/generate_limbs_mask_market.py
 tool/generate_limbs_mask_fashion.py
-tool/getPartSSIM.py

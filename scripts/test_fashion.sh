@@ -9,12 +9,12 @@ dataset="fashion_data"
 display_id=1
 display_port=8097
 gpu_ids=3,4
-name="fashion_att_sty_l5"
+name="fashion_pssim"
 which_epoch=300
 
 dataroot=${pro_dir}"datasets/"
-checkpoints_dir=${pro_dir}"checkpoints/checkpoints_fashion/checkpoints4"
-results_dir=${pro_dir}"results/results_fashion/results4"
+checkpoints_dir=${pro_dir}"checkpoints/checkpoints_fashion"
+results_dir=${pro_dir}"results/results_fashion"
 model=PATN
 phase=test
 dataset_mode=keypoint

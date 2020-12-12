@@ -9,12 +9,12 @@ dataset="market_data"
 display_id=1
 display_port=8097
 gpu_ids=0
-name="market_att_sty_gan"
+name="market_pssim"
 which_epoch=latest
 
 dataroot=${pro_dir}"datasets/"
-checkpoints_dir=${pro_dir}"checkpoints/checkpoints_market/checkpoints4"
-results_dir=${pro_dir}"results/results_market/results4"
+checkpoints_dir=${pro_dir}"checkpoints/checkpoints_market"
+results_dir=${pro_dir}"results/results_market"
 model=PATN
 phase=test
 dataset_mode=keypoint

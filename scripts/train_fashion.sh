@@ -15,11 +15,11 @@ lambda_A=10
 lambda_B=10
 lambda_SSIM=0
 lr=0.0001
-name=fashion_sty_r
+name=fashion_pssim
 
 
 dataroot=${pro_dir}"datasets/"
-checkpoints_dir=${pro_dir}"checkpoints/checkpoints_fashion/checkpoints4"
+checkpoints_dir=${pro_dir}"checkpoints/checkpoints_fashion"
 model=PATN
 phase=train
 dataset_mode=keypoint

@@ -21,7 +21,7 @@ win_sigma=0.8
 win_size=7
 
 dataroot=${pro_dir}"datasets/"
-checkpoints_dir=${pro_dir}"checkpoints/checkpoints_market/checkpoints_pssim"
+checkpoints_dir=${pro_dir}"checkpoints/checkpoints_market"
 model=PATN
 phase=train
 dataset_mode=keypoint
