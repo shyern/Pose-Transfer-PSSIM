@@ -22,3 +22,5 @@ tool/metrics_fid_market.py
 tool/inception.py
 tool/generate_limbs_mask_market.py
 tool/generate_limbs_mask_fashion.py
+tool/vis_interpolation.py
+tool/vis_feature_map.py

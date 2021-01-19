@@ -1,6 +1,6 @@
 # Loss Functions for Pose-guided Person Image Generation
 
-Code for the paper **Loss Function for Person Image Generation** in **BMVC2020**.
+Code for the conference paper **Loss Function for Person Image Generation** in **BMVC2020** and the submitted journal paper **A Comprehensive Study of Loss Functions for Pose Guided Person Image Generation**.
 
 ## Get Start
 
