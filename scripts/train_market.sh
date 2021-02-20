@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-pro_dir="./Pose-Transfer-pSSIM"
+pro_dir="./Pose-Transfer-PSSIM"
 
 ######################################################################################
 ################################Train###############################################
@@ -9,26 +9,28 @@ L1_type="FPart_BSSIM_plus_perL1_L1"
 batchSize=32
 dataset="market_data"
 display_id=1
-display_port=8098
-gpu_ids=2
+display_port=8097
+gpu_ids=0
 lambda_GAN=5
 lambda_A=0
 lambda_B=10
 lambda_SSIM=10
 lr=0.0002
+model=PATN
+which_model_netG=PATN
+#model=XingGAN
+#which_model_netG=Xing
 name=market_pssim
 win_sigma=0.8
 win_size=7
 
 dataroot=${pro_dir}"datasets/"
 checkpoints_dir=${pro_dir}"checkpoints/checkpoints_market"
-model=PATN
 phase=train
 dataset_mode=keypoint
 norm=batch
 resize_or_crop=no
 BP_input_nc=18
-which_model_netG=PATN
 with_D_PP=1
 with_D_PB=1
 pairLst="market-pairs-train.csv"
@@ -37,6 +39,7 @@ n_layers=3
 niter=500
 niter_decay=200
 n_layers_D=3
+
 
 /home/haoyue/anaconda3/envs/p37pytorch/bin/python ${pro_dir}train.py \
 --dataroot=${dataroot} --dataset=${dataset} --name=${name} --model=${model} --lambda_GAN=${lambda_GAN} --lambda_A=${lambda_A} --lambda_B=${lambda_B} \

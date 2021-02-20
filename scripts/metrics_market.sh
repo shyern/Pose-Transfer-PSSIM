@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-pro_dir="./Pose-Transfer-pSSIM"
+pro_dir="./Pose-Transfer-PSSIM"
 cd ${pro_dir}
 
-gpu_id='7'
+gpu_id=0
 which_epoch=latest
 name="market_pssim"
 results_dir=${pro_dir}"results/results_market"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-pro_dir="./Pose-Transfer-pSSIM"
+pro_dir="./Pose-Transfer-PSSIM"
 
 ######################################################################################
 ################################Testing###############################################
@@ -8,9 +8,9 @@ batchSize=1
 dataset="fashion_data"
 display_id=1
 display_port=8097
-gpu_ids=3,4
+gpu_ids=0
 name="fashion_pssim"
-which_epoch=300
+which_epoch=latest
 
 dataroot=${pro_dir}"datasets/"
 checkpoints_dir=${pro_dir}"checkpoints/checkpoints_fashion"
